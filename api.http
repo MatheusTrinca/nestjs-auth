@@ -1,20 +1,3 @@
-POST http://localhost:3000/users
-Content-Type: application/json
-
-{
-  "name": "Admin",
-  "email": "admin@user.com",
-  "password": "admin",
-  "role": "ADMIN"
-}
-
-###
-GET http://localhost:3000/users
-Authorization: Bearer {{tokenAdmin}}
-
-###
-GET http://localhost:3000/users/cm94evuqx0002legvvcg0fxa3
-
 ###
 # @name adminLogin
 POST http://localhost:3000/auth/login
@@ -29,12 +12,59 @@ Content-Type: application/json
 @tokenAdmin = {{ adminLogin.response.body.access_token }}
 
 ###
-POST http://localhost:3000/posts
+# @name readerLogin
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "reader@user.com",
+  "password": "reader"
+}
+
+###
+@tokenReader = {{ readerLogin.response.body.access_token }}
+
+### Create Admin
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+  "name": "Admin",
+  "email": "admin@user.com",
+  "password": "admin",
+  "role": "ADMIN"
+}
+
+### Create Reader
+POST http://localhost:3000/users
 Content-Type: application/json
 Authorization: Bearer {{tokenAdmin}}
+
+{
+  "name": "Reader",
+  "email": "reader@user.com",
+  "password": "reader",
+  "role": "READER"
+}
+
+###
+GET http://localhost:3000/users
+Authorization: Bearer {{tokenAdmin}}
+
+###
+GET http://localhost:3000/users/cm94evuqx0002legvvcg0fxa3
+
+###
+POST http://localhost:3000/posts
+Content-Type: application/json
+Authorization: Bearer {{tokenReader}}
 
 {
   "title": "My first post",
   "content": "This is the content of my first post",
   "published": true
 }
+
+###
+GET http://localhost:3000/posts
+Authorization: Bearer {{tokenAdmin}}
