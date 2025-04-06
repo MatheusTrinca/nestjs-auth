@@ -57,14 +57,27 @@ GET http://localhost:3000/users/cm94evuqx0002legvvcg0fxa3
 ###
 POST http://localhost:3000/posts
 Content-Type: application/json
-Authorization: Bearer {{tokenReader}}
+Authorization: Bearer {{tokenAdmin}}
 
 {
-  "title": "My first post",
-  "content": "This is the content of my first post",
-  "published": true
+  "title": "My second post",
+  "content": "This is the content of my second post",
+  "published": false
 }
 
 ###
 GET http://localhost:3000/posts
 Authorization: Bearer {{tokenAdmin}}
+
+###
+GET http://localhost:3000/posts/cm94zss9s0001legoe5ky1uxf
+Authorization: Bearer {{tokenReader}}
+
+###
+PATCH http://localhost:3000/posts/cm94zss9s0001legoe5ky1uxf
+Content-Type: application/json
+Authorization: Bearer {{tokenReader}}
+
+{
+  "published": true
+}

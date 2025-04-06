@@ -8,6 +8,7 @@ import {
   Delete,
   Req,
   UseGuards,
+  NotFoundException,
 } from '@nestjs/common';
 import { Roles } from '@prisma/client';
 import { PostsService } from './posts.service';
@@ -23,7 +24,8 @@ import { RoleGuard } from '../auth/role/role.guard';
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
-  @RequiredRoles(Roles.WRITER, Roles.EDITOR)
+  // @RequiredRoles(Roles.WRITER, Roles.EDITOR)
+  // @RequiredPermissions('create', 'Post')
   @Post()
   create(@Body() createPostDto: CreatePostDto, @Req() req: Request) {
     return this.postsService.create({
@@ -40,8 +42,14 @@ export class PostsController {
 
   @RequiredRoles(Roles.WRITER, Roles.EDITOR, Roles.READER)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.postsService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const post = await this.postsService.findOne(id);
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    return post;
   }
 
   @RequiredRoles(Roles.WRITER, Roles.EDITOR)

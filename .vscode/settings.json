@@ -1,3 +1,4 @@
 {
-  "editor.fontWeight": "normal"
+  "editor.fontWeight": "normal",
+  "terminal.integrated.fontWeight": "normal"
 }
