@@ -17,7 +17,9 @@ const mockUser: User = {
 
 const mockAbility = { rules: [] };
 
-const makeContext = (headers: Record<string, string> = {}): ExecutionContext => {
+const makeContext = (
+  headers: Record<string, string> = {},
+): ExecutionContext => {
   const request = { headers, user: undefined, ability: undefined };
   return {
     switchToHttp: () => ({
@@ -53,7 +55,12 @@ describe('AuthGuard', () => {
 
   describe('canActivate', () => {
     it('should return true for a valid token', async () => {
-      const payload = { sub: mockUser.id, name: mockUser.name, email: mockUser.email, role: mockUser.role };
+      const payload = {
+        sub: mockUser.id,
+        name: mockUser.name,
+        email: mockUser.email,
+        role: mockUser.role,
+      };
       jwtService.verify.mockReturnValue(payload);
       prismaUserMock.findUnique.mockResolvedValue(mockUser);
 
@@ -64,11 +71,20 @@ describe('AuthGuard', () => {
     });
 
     it('should attach user to request when token is valid', async () => {
-      const payload = { sub: mockUser.id, name: mockUser.name, email: mockUser.email, role: mockUser.role };
+      const payload = {
+        sub: mockUser.id,
+        name: mockUser.name,
+        email: mockUser.email,
+        role: mockUser.role,
+      };
       jwtService.verify.mockReturnValue(payload);
       prismaUserMock.findUnique.mockResolvedValue(mockUser);
 
-      const request = { headers: { authorization: 'Bearer valid-token' }, user: undefined, ability: undefined };
+      const request = {
+        headers: { authorization: 'Bearer valid-token' },
+        user: undefined,
+        ability: undefined,
+      };
       const context = {
         switchToHttp: () => ({ getRequest: () => request }),
       } as unknown as ExecutionContext;
@@ -79,11 +95,20 @@ describe('AuthGuard', () => {
     });
 
     it('should attach ability to request when token is valid', async () => {
-      const payload = { sub: mockUser.id, name: mockUser.name, email: mockUser.email, role: mockUser.role };
+      const payload = {
+        sub: mockUser.id,
+        name: mockUser.name,
+        email: mockUser.email,
+        role: mockUser.role,
+      };
       jwtService.verify.mockReturnValue(payload);
       prismaUserMock.findUnique.mockResolvedValue(mockUser);
 
-      const request = { headers: { authorization: 'Bearer valid-token' }, user: undefined, ability: undefined };
+      const request = {
+        headers: { authorization: 'Bearer valid-token' },
+        user: undefined,
+        ability: undefined,
+      };
       const context = {
         switchToHttp: () => ({ getRequest: () => request }),
       } as unknown as ExecutionContext;
@@ -123,7 +148,12 @@ describe('AuthGuard', () => {
     });
 
     it('should throw UnauthorizedException when user is not found in database', async () => {
-      const payload = { sub: 'non-existent-id', name: 'Ghost', email: 'ghost@example.com', role: Roles.READER };
+      const payload = {
+        sub: 'non-existent-id',
+        name: 'Ghost',
+        email: 'ghost@example.com',
+        role: Roles.READER,
+      };
       jwtService.verify.mockReturnValue(payload);
       prismaUserMock.findUnique.mockResolvedValue(null);
 
@@ -135,7 +165,12 @@ describe('AuthGuard', () => {
     });
 
     it('should look up user by payload.sub', async () => {
-      const payload = { sub: mockUser.id, name: mockUser.name, email: mockUser.email, role: mockUser.role };
+      const payload = {
+        sub: mockUser.id,
+        name: mockUser.name,
+        email: mockUser.email,
+        role: mockUser.role,
+      };
       jwtService.verify.mockReturnValue(payload);
       prismaUserMock.findUnique.mockResolvedValue(mockUser);
 
@@ -148,7 +183,12 @@ describe('AuthGuard', () => {
     });
 
     it('should verify JWT with HS256 algorithm', async () => {
-      const payload = { sub: mockUser.id, name: mockUser.name, email: mockUser.email, role: mockUser.role };
+      const payload = {
+        sub: mockUser.id,
+        name: mockUser.name,
+        email: mockUser.email,
+        role: mockUser.role,
+      };
       jwtService.verify.mockReturnValue(payload);
       prismaUserMock.findUnique.mockResolvedValue(mockUser);
 

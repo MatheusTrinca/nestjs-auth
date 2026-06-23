@@ -72,7 +72,10 @@ describe('UsersController', () => {
 
   describe('findAll', () => {
     it('should return all users from usersService', async () => {
-      const users = [makeUser(), makeUser({ id: 'id-2', email: 'other@example.com' })];
+      const users = [
+        makeUser(),
+        makeUser({ id: 'id-2', email: 'other@example.com' }),
+      ];
       usersService.findAll.mockResolvedValue(users);
 
       const result = await controller.findAll();

@@ -44,7 +44,9 @@ describe('PostsService', () => {
     update: jest.Mock;
     delete: jest.Mock;
   };
-  let abilityService: { ability: ReturnType<CaslAbilityService['createForUser']> };
+  let abilityService: {
+    ability: ReturnType<CaslAbilityService['createForUser']>;
+  };
 
   const setupModule = async (user: User) => {
     prismaPostMock = {
@@ -131,7 +133,7 @@ describe('PostsService', () => {
 
       expect(result).toEqual(posts);
       expect(prismaPostMock.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.any(Object) }),
+        expect.objectContaining({ where: expect.any(Object) as unknown }),
       );
     });
 
@@ -156,7 +158,9 @@ describe('PostsService', () => {
 
       expect(result).toEqual(post);
       expect(prismaPostMock.findFirst).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ id: 'post-id' }) }),
+        expect.objectContaining({
+          where: expect.objectContaining({ id: 'post-id' }) as unknown,
+        }),
       );
     });
 
@@ -205,7 +209,9 @@ describe('PostsService', () => {
       await setupModule(makeUser({ role: Roles.READER }));
       prismaPostMock.findUnique.mockResolvedValue(null);
 
-      await expect(service.update('post-id', dto)).rejects.toThrow(ForbiddenException);
+      await expect(service.update('post-id', dto)).rejects.toThrow(
+        ForbiddenException,
+      );
       expect(prismaPostMock.update).not.toHaveBeenCalled();
     });
 
@@ -214,7 +220,9 @@ describe('PostsService', () => {
       const post = makePost({ published: true });
       prismaPostMock.findUnique.mockResolvedValue(post);
 
-      await expect(service.update('post-id', dto)).rejects.toThrow(ForbiddenException);
+      await expect(service.update('post-id', dto)).rejects.toThrow(
+        ForbiddenException,
+      );
       expect(prismaPostMock.update).not.toHaveBeenCalled();
     });
 
@@ -225,7 +233,9 @@ describe('PostsService', () => {
       const otherPost = makePost({ authorId: 'other-author-id' });
       prismaPostMock.findUnique.mockResolvedValue(otherPost);
 
-      await expect(service.update('post-id', dto)).rejects.toThrow(ForbiddenException);
+      await expect(service.update('post-id', dto)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -239,7 +249,9 @@ describe('PostsService', () => {
       const result = await service.remove('post-id');
 
       expect(result).toEqual(post);
-      expect(prismaPostMock.delete).toHaveBeenCalledWith({ where: { id: 'post-id' } });
+      expect(prismaPostMock.delete).toHaveBeenCalledWith({
+        where: { id: 'post-id' },
+      });
     });
 
     it('should throw ForbiddenException when EDITOR tries to delete', async () => {
@@ -260,7 +272,9 @@ describe('PostsService', () => {
       const post = makePost({ published: true });
       prismaPostMock.findUnique.mockResolvedValue(post);
 
-      await expect(service.remove('post-id')).rejects.toThrow(ForbiddenException);
+      await expect(service.remove('post-id')).rejects.toThrow(
+        ForbiddenException,
+      );
       expect(prismaPostMock.delete).not.toHaveBeenCalled();
     });
 
@@ -268,7 +282,9 @@ describe('PostsService', () => {
       await setupModule(makeUser({ role: Roles.ADMIN }));
       prismaPostMock.findUnique.mockResolvedValue(null);
 
-      await expect(service.remove('non-existent-id')).rejects.toThrow(ForbiddenException);
+      await expect(service.remove('non-existent-id')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });

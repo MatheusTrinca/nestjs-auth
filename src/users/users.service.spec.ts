@@ -38,7 +38,9 @@ describe('UsersService', () => {
     update: jest.Mock;
     delete: jest.Mock;
   };
-  let abilityService: { ability: ReturnType<CaslAbilityService['createForUser']> };
+  let abilityService: {
+    ability: ReturnType<CaslAbilityService['createForUser']>;
+  };
 
   const setupModule = async (role: Roles) => {
     prismaUserMock = {
@@ -96,7 +98,9 @@ describe('UsersService', () => {
 
       expect(prismaUserMock.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ password: 'hashed-password' }),
+          data: expect.objectContaining({
+            password: 'hashed-password',
+          }) as unknown,
         }),
       );
     });
@@ -124,7 +128,10 @@ describe('UsersService', () => {
   describe('findAll', () => {
     it('should return all users when ADMIN', async () => {
       await setupModule(Roles.ADMIN);
-      const users = [makeUser(), makeUser({ id: 'other-id', email: 'other@example.com' })];
+      const users = [
+        makeUser(),
+        makeUser({ id: 'other-id', email: 'other@example.com' }),
+      ];
       prismaUserMock.findMany.mockResolvedValue(users);
 
       const result = await service.findAll();

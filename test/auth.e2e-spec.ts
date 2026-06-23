@@ -6,6 +6,8 @@ import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import bcrypt from 'bcrypt';
 
+type LoginResponse = { access_token: string };
+
 describe('Auth (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
@@ -28,7 +30,6 @@ describe('Auth (e2e)', () => {
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
 
-    // Seed test user directly in the database
     const hashed = await bcrypt.hash(testUser.password, 10);
     const created = await prisma.user.create({
       data: {
@@ -55,9 +56,10 @@ describe('Auth (e2e)', () => {
         .send({ email: testUser.email, password: testUser.password })
         .expect(201);
 
-      expect(response.body).toHaveProperty('access_token');
-      expect(typeof response.body.access_token).toBe('string');
-      expect(response.body.access_token.length).toBeGreaterThan(0);
+      const body = response.body as LoginResponse;
+      expect(body).toHaveProperty('access_token');
+      expect(typeof body.access_token).toBe('string');
+      expect(body.access_token.length).toBeGreaterThan(0);
     });
 
     it('should return a valid JWT structure', async () => {
@@ -65,8 +67,8 @@ describe('Auth (e2e)', () => {
         .post('/auth/login')
         .send({ email: testUser.email, password: testUser.password });
 
-      const token = response.body.access_token as string;
-      const parts = token.split('.');
+      const { access_token } = response.body as LoginResponse;
+      const parts = access_token.split('.');
       // JWT has 3 parts: header.payload.signature
       expect(parts).toHaveLength(3);
     });

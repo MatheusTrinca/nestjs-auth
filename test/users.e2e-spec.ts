@@ -6,6 +6,9 @@ import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import bcrypt from 'bcrypt';
 
+type LoginResponse = { access_token: string };
+type UserResponse = { id: string; name: string; email: string };
+
 describe('Users (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
@@ -34,7 +37,7 @@ describe('Users (e2e)', () => {
     const response = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ email, password });
-    return response.body.access_token as string;
+    return (response.body as LoginResponse).access_token;
   };
 
   beforeAll(async () => {
@@ -131,12 +134,13 @@ describe('Users (e2e)', () => {
         .send(newUser)
         .expect(201);
 
-      expect(response.body).toHaveProperty('id');
-      expect(response.body.email).toBe(newUser.email);
-      expect(response.body.name).toBe(newUser.name);
+      const created = response.body as UserResponse;
+      expect(created).toHaveProperty('id');
+      expect(created.email).toBe(newUser.email);
+      expect(created.name).toBe(newUser.name);
       expect(response.body).not.toHaveProperty('password', newUser.password); // password should be hashed
 
-      createdUserIds.push(response.body.id as string);
+      createdUserIds.push(created.id);
     });
 
     it('should return 403 when READER tries to create a user', async () => {
@@ -164,8 +168,9 @@ describe('Users (e2e)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      expect(response.body.id).toBe(adminId);
-      expect(response.body.email).toBe(adminUser.email);
+      const body = response.body as UserResponse;
+      expect(body.id).toBe(adminId);
+      expect(body.email).toBe(adminUser.email);
     });
 
     it('should return 403 when READER tries to get a user by id', async () => {
@@ -191,7 +196,7 @@ describe('Users (e2e)', () => {
         .send({ name: 'Updated Reader Name' })
         .expect(200);
 
-      expect(response.body.name).toBe('Updated Reader Name');
+      expect((response.body as UserResponse).name).toBe('Updated Reader Name');
     });
 
     it('should return 403 when READER tries to update a user', async () => {

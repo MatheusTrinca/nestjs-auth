@@ -122,7 +122,10 @@ describe('AuthService', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(
-        service.login({ email: 'test@example.com', password: 'wrong-password' }),
+        service.login({
+          email: 'test@example.com',
+          password: 'wrong-password',
+        }),
       ).rejects.toThrow('Invalid credentials');
     });
 

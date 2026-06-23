@@ -29,7 +29,9 @@ describe('PrismaService', () => {
   let service: PrismaService;
 
   const mockConfigService = {
-    get: jest.fn().mockReturnValue({ url: 'postgresql://user:pass@localhost:5432/testdb' }),
+    get: jest
+      .fn()
+      .mockReturnValue({ url: 'postgresql://user:pass@localhost:5432/testdb' }),
   };
 
   beforeEach(async () => {

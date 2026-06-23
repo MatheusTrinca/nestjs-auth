@@ -6,6 +6,14 @@ import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import bcrypt from 'bcrypt';
 
+type LoginResponse = { access_token: string };
+type PostResponse = {
+  id: string;
+  title: string;
+  authorId: string;
+  published: boolean;
+};
+
 describe('Posts (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
@@ -23,17 +31,37 @@ describe('Posts (e2e)', () => {
   let sharedPostId: string;
 
   const seedUsers = [
-    { name: 'E2E Admin Posts', email: 'e2e-admin-posts@test.com', password: 'admin123', role: 'ADMIN' as const },
-    { name: 'E2E Editor Posts', email: 'e2e-editor-posts@test.com', password: 'editor123', role: 'EDITOR' as const },
-    { name: 'E2E Writer Posts', email: 'e2e-writer-posts@test.com', password: 'writer123', role: 'WRITER' as const },
-    { name: 'E2E Reader Posts', email: 'e2e-reader-posts@test.com', password: 'reader123', role: 'READER' as const },
+    {
+      name: 'E2E Admin Posts',
+      email: 'e2e-admin-posts@test.com',
+      password: 'admin123',
+      role: 'ADMIN' as const,
+    },
+    {
+      name: 'E2E Editor Posts',
+      email: 'e2e-editor-posts@test.com',
+      password: 'editor123',
+      role: 'EDITOR' as const,
+    },
+    {
+      name: 'E2E Writer Posts',
+      email: 'e2e-writer-posts@test.com',
+      password: 'writer123',
+      role: 'WRITER' as const,
+    },
+    {
+      name: 'E2E Reader Posts',
+      email: 'e2e-reader-posts@test.com',
+      password: 'reader123',
+      role: 'READER' as const,
+    },
   ];
 
   const getToken = async (email: string, password: string): Promise<string> => {
     const response = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ email, password });
-    return response.body.access_token as string;
+    return (response.body as LoginResponse).access_token;
   };
 
   beforeAll(async () => {
@@ -69,7 +97,12 @@ describe('Posts (e2e)', () => {
 
     // Create a shared post for read/update/delete tests
     const post = await prisma.post.create({
-      data: { title: 'Shared Test Post', content: 'Content', published: true, authorId: editorId },
+      data: {
+        title: 'Shared Test Post',
+        content: 'Content',
+        published: true,
+        authorId: editorId,
+      },
     });
     sharedPostId = post.id;
   });
@@ -134,7 +167,11 @@ describe('Posts (e2e)', () => {
     });
 
     it('should create a post when EDITOR', async () => {
-      const postDto = { title: 'Editor Post', content: 'Editor Content', published: false };
+      const postDto = {
+        title: 'Editor Post',
+        content: 'Editor Content',
+        published: false,
+      };
 
       const response = await request(app.getHttpServer())
         .post('/posts')
@@ -142,13 +179,18 @@ describe('Posts (e2e)', () => {
         .send(postDto)
         .expect(201);
 
-      expect(response.body).toHaveProperty('id');
-      expect(response.body.title).toBe(postDto.title);
-      expect(response.body.authorId).toBe(editorId);
+      const created = response.body as PostResponse;
+      expect(created).toHaveProperty('id');
+      expect(created.title).toBe(postDto.title);
+      expect(created.authorId).toBe(editorId);
     });
 
     it('should create a post when WRITER', async () => {
-      const postDto = { title: 'Writer Post', content: 'Writer Content', published: false };
+      const postDto = {
+        title: 'Writer Post',
+        content: 'Writer Content',
+        published: false,
+      };
 
       const response = await request(app.getHttpServer())
         .post('/posts')
@@ -156,12 +198,17 @@ describe('Posts (e2e)', () => {
         .send(postDto)
         .expect(201);
 
-      expect(response.body).toHaveProperty('id');
-      expect(response.body.authorId).toBe(writerId);
+      const created = response.body as PostResponse;
+      expect(created).toHaveProperty('id');
+      expect(created.authorId).toBe(writerId);
     });
 
     it('should create a post when ADMIN', async () => {
-      const postDto = { title: 'Admin Post', content: 'Admin Content', published: true };
+      const postDto = {
+        title: 'Admin Post',
+        content: 'Admin Content',
+        published: true,
+      };
 
       const response = await request(app.getHttpServer())
         .post('/posts')
@@ -169,8 +216,9 @@ describe('Posts (e2e)', () => {
         .send(postDto)
         .expect(201);
 
-      expect(response.body).toHaveProperty('id');
-      expect(response.body.authorId).toBe(adminId);
+      const created = response.body as PostResponse;
+      expect(created).toHaveProperty('id');
+      expect(created.authorId).toBe(adminId);
     });
 
     it('should return 403 when READER tries to create a post', async () => {
@@ -184,7 +232,9 @@ describe('Posts (e2e)', () => {
 
   describe('GET /posts/:id (findOne)', () => {
     it('should return 401 without auth token', async () => {
-      await request(app.getHttpServer()).get(`/posts/${sharedPostId}`).expect(401);
+      await request(app.getHttpServer())
+        .get(`/posts/${sharedPostId}`)
+        .expect(401);
     });
 
     it('should return post when ADMIN', async () => {
@@ -193,7 +243,7 @@ describe('Posts (e2e)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      expect(response.body.id).toBe(sharedPostId);
+      expect((response.body as PostResponse).id).toBe(sharedPostId);
     });
 
     it('should return post when EDITOR', async () => {
@@ -202,7 +252,7 @@ describe('Posts (e2e)', () => {
         .set('Authorization', `Bearer ${editorToken}`)
         .expect(200);
 
-      expect(response.body.id).toBe(sharedPostId);
+      expect((response.body as PostResponse).id).toBe(sharedPostId);
     });
 
     it('should return published post when READER', async () => {
@@ -212,7 +262,7 @@ describe('Posts (e2e)', () => {
         .set('Authorization', `Bearer ${readerToken}`)
         .expect(200);
 
-      expect(response.body.id).toBe(sharedPostId);
+      expect((response.body as PostResponse).id).toBe(sharedPostId);
     });
 
     it('should return 404 for non-existent post', async () => {
@@ -225,7 +275,12 @@ describe('Posts (e2e)', () => {
     it('should return 404 when READER tries to access unpublished post', async () => {
       // Create an unpublished post
       const unpublished = await prisma.post.create({
-        data: { title: 'Unpublished', content: 'Content', published: false, authorId: editorId },
+        data: {
+          title: 'Unpublished',
+          content: 'Content',
+          published: false,
+          authorId: editorId,
+        },
       });
 
       await request(app.getHttpServer())
@@ -253,7 +308,7 @@ describe('Posts (e2e)', () => {
         .send({ title: 'Admin Updated Title' })
         .expect(200);
 
-      expect(response.body.title).toBe('Admin Updated Title');
+      expect((response.body as PostResponse).title).toBe('Admin Updated Title');
     });
 
     it('should update any post when EDITOR', async () => {
@@ -263,13 +318,20 @@ describe('Posts (e2e)', () => {
         .send({ title: 'Editor Updated Title' })
         .expect(200);
 
-      expect(response.body.title).toBe('Editor Updated Title');
+      expect((response.body as PostResponse).title).toBe(
+        'Editor Updated Title',
+      );
     });
 
     it('should update own post when WRITER', async () => {
       // Create a post owned by the writer
       const writerPost = await prisma.post.create({
-        data: { title: 'Writer Own Post', content: 'Content', published: false, authorId: writerId },
+        data: {
+          title: 'Writer Own Post',
+          content: 'Content',
+          published: false,
+          authorId: writerId,
+        },
       });
 
       const response = await request(app.getHttpServer())
@@ -278,7 +340,9 @@ describe('Posts (e2e)', () => {
         .send({ title: 'Writer Updated Own Post' })
         .expect(200);
 
-      expect(response.body.title).toBe('Writer Updated Own Post');
+      expect((response.body as PostResponse).title).toBe(
+        'Writer Updated Own Post',
+      );
 
       // Clean up
       await prisma.post.delete({ where: { id: writerPost.id } });
@@ -318,7 +382,12 @@ describe('Posts (e2e)', () => {
 
     it('should delete own post when WRITER', async () => {
       const writerPost = await prisma.post.create({
-        data: { title: 'To Delete', content: 'Content', published: false, authorId: writerId },
+        data: {
+          title: 'To Delete',
+          content: 'Content',
+          published: false,
+          authorId: writerId,
+        },
       });
 
       await request(app.getHttpServer())
@@ -326,13 +395,20 @@ describe('Posts (e2e)', () => {
         .set('Authorization', `Bearer ${writerToken}`)
         .expect(200);
 
-      const found = await prisma.post.findUnique({ where: { id: writerPost.id } });
+      const found = await prisma.post.findUnique({
+        where: { id: writerPost.id },
+      });
       expect(found).toBeNull();
     });
 
     it('should delete any post when ADMIN', async () => {
       const postToDelete = await prisma.post.create({
-        data: { title: 'Admin Deletes This', content: 'Content', published: false, authorId: editorId },
+        data: {
+          title: 'Admin Deletes This',
+          content: 'Content',
+          published: false,
+          authorId: editorId,
+        },
       });
 
       await request(app.getHttpServer())
@@ -340,7 +416,9 @@ describe('Posts (e2e)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      const found = await prisma.post.findUnique({ where: { id: postToDelete.id } });
+      const found = await prisma.post.findUnique({
+        where: { id: postToDelete.id },
+      });
       expect(found).toBeNull();
     });
   });
