@@ -4,6 +4,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CaslAbilityService } from '../casl/casl-ability/casl-ability.service';
 import { accessibleBy } from '@casl/prisma';
+import { subject } from '@casl/ability';
 
 @Injectable()
 export class PostsService {
@@ -37,7 +38,7 @@ export class PostsService {
   findOne(id: string) {
     const ability = this.abilityService.ability;
 
-    return this.prismaService.post.findUnique({
+    return this.prismaService.post.findFirst({
       where: { id, AND: [accessibleBy(ability, 'read').ofType('Post')] },
     });
   }
@@ -45,11 +46,9 @@ export class PostsService {
   async update(id: string, updatePostDto: UpdatePostDto) {
     const ability = this.abilityService.ability;
 
-    const post = await this.prismaService.post.findUnique({
-      where: { id, AND: [accessibleBy(ability, 'update').ofType('Post')] },
-    });
+    const post = await this.prismaService.post.findUnique({ where: { id } });
 
-    if (!post) {
+    if (!post || !ability.can('update', subject('Post', post))) {
       throw new ForbiddenException('Unauthorized');
     }
 
@@ -62,11 +61,9 @@ export class PostsService {
   async remove(id: string) {
     const ability = this.abilityService.ability;
 
-    const post = await this.prismaService.post.findUnique({
-      where: { id, AND: [accessibleBy(ability, 'update').ofType('Post')] },
-    });
+    const post = await this.prismaService.post.findUnique({ where: { id } });
 
-    if (!post) {
+    if (!post || !ability.can('update', subject('Post', post))) {
       throw new ForbiddenException('Unauthorized');
     }
 
