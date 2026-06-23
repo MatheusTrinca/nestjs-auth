@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { packRules } from '@casl/ability/extra';
 import bcrypt from 'bcrypt';
-import { CaslAbilityService } from 'src/casl/casl-ability/casl-ability.service';
+import { CaslAbilityService } from '../casl/casl-ability/casl-ability.service';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +32,7 @@ export class AuthService {
       throw new Error('Invalid credentials');
     }
 
-    const ability = this.abilityService.ability;
+    const ability = this.abilityService.createForUser(user);
     const token = this.jwtService.sign({
       name: user.name,
       email: user.email,

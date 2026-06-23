@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt';
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { CaslAbilityService } from 'src/casl/casl-ability/casl-ability.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { CaslAbilityService } from '../casl/casl-ability/casl-ability.service';
 
 @Injectable()
 export class UsersService {
@@ -16,7 +16,7 @@ export class UsersService {
     const ability = this.abilityService.ability;
 
     if (!ability.can('create', 'User')) {
-      throw new Error('Unauthorized');
+      throw new ForbiddenException();
     }
 
     return this.prismaService.user.create({
@@ -28,14 +28,32 @@ export class UsersService {
   }
 
   findAll() {
+    const ability = this.abilityService.ability;
+
+    if (!ability.can('read', 'User')) {
+      throw new ForbiddenException();
+    }
+
     return this.prismaService.user.findMany();
   }
 
   findOne(id: string) {
+    const ability = this.abilityService.ability;
+
+    if (!ability.can('read', 'User')) {
+      throw new ForbiddenException();
+    }
+
     return this.prismaService.user.findUnique({ where: { id } });
   }
 
   update(id: string, updateUserDto: UpdateUserDto) {
+    const ability = this.abilityService.ability;
+
+    if (!ability.can('update', 'User')) {
+      throw new ForbiddenException();
+    }
+
     return this.prismaService.user.update({
       where: { id },
       data: updateUserDto,
@@ -43,6 +61,12 @@ export class UsersService {
   }
 
   remove(id: string) {
+    const ability = this.abilityService.ability;
+
+    if (!ability.can('delete', 'User')) {
+      throw new ForbiddenException();
+    }
+
     return this.prismaService.user.delete({ where: { id } });
   }
 }

@@ -7,8 +7,8 @@ import {
 import { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { Roles } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { CaslAbilityService } from 'src/casl/casl-ability/casl-ability.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { CaslAbilityService } from '../casl/casl-ability/casl-ability.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -45,8 +45,9 @@ export class AuthGuard implements CanActivate {
         throw new UnauthorizedException('User not found');
       }
 
+      const ability = this.abilityService.createForUser(user);
       request.user = user;
-      this.abilityService.createForUser(user);
+      request.ability = ability;
 
       return true;
     } catch (e) {

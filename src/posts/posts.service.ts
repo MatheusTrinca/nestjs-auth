@@ -1,8 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { CaslAbilityService } from 'src/casl/casl-ability/casl-ability.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { CaslAbilityService } from '../casl/casl-ability/casl-ability.service';
 import { accessibleBy } from '@casl/prisma';
 
 @Injectable()
@@ -16,7 +16,7 @@ export class PostsService {
     const ability = this.abilityService.ability;
 
     if (!ability.can('create', 'Post')) {
-      throw new Error('Unauthorized');
+      throw new ForbiddenException();
     }
 
     return this.prismaService.post.create({
@@ -29,7 +29,7 @@ export class PostsService {
 
     return this.prismaService.post.findMany({
       where: {
-        AND: [accessibleBy(ability, 'read').Post],
+        AND: [accessibleBy(ability, 'read').ofType('Post')],
       },
     });
   }
@@ -38,7 +38,7 @@ export class PostsService {
     const ability = this.abilityService.ability;
 
     return this.prismaService.post.findUnique({
-      where: { id, AND: [accessibleBy(ability, 'read').Post] },
+      where: { id, AND: [accessibleBy(ability, 'read').ofType('Post')] },
     });
   }
 
@@ -46,11 +46,11 @@ export class PostsService {
     const ability = this.abilityService.ability;
 
     const post = await this.prismaService.post.findUnique({
-      where: { id, AND: [accessibleBy(ability, 'update').Post] },
+      where: { id, AND: [accessibleBy(ability, 'update').ofType('Post')] },
     });
 
     if (!post) {
-      throw new UnauthorizedException('Unauthorized');
+      throw new ForbiddenException('Unauthorized');
     }
 
     return this.prismaService.post.update({
@@ -63,11 +63,11 @@ export class PostsService {
     const ability = this.abilityService.ability;
 
     const post = await this.prismaService.post.findUnique({
-      where: { id, AND: [accessibleBy(ability, 'update').Post] },
+      where: { id, AND: [accessibleBy(ability, 'update').ofType('Post')] },
     });
 
     if (!post) {
-      throw new UnauthorizedException('Unauthorized');
+      throw new ForbiddenException('Unauthorized');
     }
 
     return this.prismaService.post.delete({ where: { id } });
